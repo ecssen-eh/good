@@ -2,6 +2,7 @@ import type { FC } from 'react';
 
 import SignupCard from '@components/Shared/Auth/SignupCard';
 import Footer from '@components/Shared/Footer';
+import Search from '@components/Shared/Navbar/Search';
 import { IS_MAINNET } from '@good/data/constants';
 import { memo } from 'react';
 import { useProfileStore } from 'src/store/persisted/useProfileStore';
@@ -18,8 +19,8 @@ const Sidebar: FC = () => {
   const loggedOut = !loggedInWithProfile;
 
   return (
-    <>
-      {/* <Gitcoin /> */}
+    <div className="hidden lg:block">
+      <Search />
       {loggedOut && <SignupCard />}
       {loggedInWithProfile && IS_MAINNET && <GoodMembershipNft />}
       {/* Onboarding steps */}
@@ -33,7 +34,7 @@ const Sidebar: FC = () => {
       <StaffPicks />
       {loggedInWithProfile && <WhoToFollow />}
       <Footer />
-    </>
+    </div>
   );
 };
 

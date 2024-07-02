@@ -22,7 +22,7 @@ import { useSignTypedData, useWriteContract } from 'wagmi';
 
 import useHandleWrongNetwork from './useHandleWrongNetwork';
 
-interface CreatePublicationProps {
+export interface CreatePublicationProps {
   onSuccess?: () => void;
   signlessApproved?: boolean;
   successToast?: string;

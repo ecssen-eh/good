@@ -1,4 +1,5 @@
 export * from './Bridge';
+export * from './GoodDonation';
 export * from './GoodLensSignup';
 export * from './GoodMembershipNft';
 export * from './GoodPro';

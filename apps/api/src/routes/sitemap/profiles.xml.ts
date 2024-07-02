@@ -1,29 +1,44 @@
 import type { Handler } from 'express';
 
+import { LensHub } from '@good/abis';
+import { GOOD_API_URL, IS_MAINNET, LENS_HUB } from '@good/data/constants';
 import logger from '@good/helpers/logger';
-import lensPg from 'src/db/lensPg';
 import catchedError from 'src/helpers/catchedError';
 import { SITEMAP_BATCH_SIZE } from 'src/helpers/constants';
+import getRpc from 'src/helpers/getRpc';
 import { buildSitemapXml } from 'src/helpers/sitemap/buildSitemap';
+import { createPublicClient } from 'viem';
+import { polygon, polygonAmoy } from 'viem/chains';
 
 export const get: Handler = async (req, res) => {
   const user_agent = req.headers['user-agent'];
 
   try {
-    const response = await lensPg.query(`
-      SELECT COUNT(h.handle_id) AS count
-      FROM namespace.handle h
-      JOIN namespace.handle_link hl ON h.handle_id = hl.handle_id
-      JOIN profile.record p ON hl.token_id = p.profile_id
-      WHERE p.is_burnt = false;
-    `);
+    const viemClient = createPublicClient({
+      chain: IS_MAINNET ? polygon : polygonAmoy,
+      transport: getRpc({ mainnet: IS_MAINNET })
+    });
 
-    const totalHandles = Number(response[0]?.count) || 0;
+    // We can't easily retrieve the actual handle count since that
+    // would require BigQuery, but we can approximate it using the number of
+    // profiles. This does mean that we will miss some profiles since the totalSupply
+    // can be smaller than the latest profile ID (due to burning).
+    const profileCount = await viemClient.readContract({
+      abi: LensHub,
+      address: LENS_HUB,
+      args: [],
+      functionName: 'totalSupply'
+    });
+
+    logger.info(`Profile count retrieved: ${profileCount}`);
+
+    const totalHandles = Number(profileCount) || 0;
     const totalBatches = Math.ceil(totalHandles / SITEMAP_BATCH_SIZE);
 
     const entries = Array.from({ length: totalBatches }, (_, index) => ({
-      loc: `https://api.bcharity.net/sitemap/profiles/${index + 1}.xml`
+      loc: `${GOOD_API_URL}/sitemap/profiles/${index + 1}.xml`
     }));
+
     const xml = buildSitemapXml(entries);
 
     logger.info(

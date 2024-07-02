@@ -1,3 +1,4 @@
+import type { ButtonType } from '@good/types/misc';
 import type { Handler } from 'express';
 
 import { IS_MAINNET } from '@good/data/constants';
@@ -14,15 +15,17 @@ import { invalidBody, noBody, notAllowed } from 'src/helpers/responses';
 import { number, object, string } from 'zod';
 
 type ExtensionRequest = {
+  buttonAction?: ButtonType;
   buttonIndex: number;
-  identityToken: string;
+  inputText?: string;
   postUrl: string;
   pubId: string;
+  state?: string;
 };
 
 const validationSchema = object({
+  buttonAction: string().optional(),
   buttonIndex: number(),
-  identityToken: string(),
   postUrl: string(),
   pubId: string()
 });
@@ -34,7 +37,6 @@ export const post: Handler = async (req, res) => {
     return noBody(res);
   }
 
-  const accessToken = req.headers['x-access-token'] as string;
   const validation = validationSchema.safeParse(body);
 
   if (!validation.success) {
@@ -46,21 +48,23 @@ export const post: Handler = async (req, res) => {
     return notAllowed(res, validateLensAccountStatus);
   }
 
-  const { buttonIndex, identityToken, postUrl, pubId } =
+  const { buttonAction, buttonIndex, inputText, postUrl, pubId, state } =
     body as ExtensionRequest;
 
   try {
-    const payload = parseJwt(accessToken);
+    const accessToken = req.headers['x-access-token'] as string;
+    const identityToken = req.headers['x-identity-token'] as string;
+    const payload = parseJwt(identityToken);
     const { id } = payload;
 
     const request = {
       actionResponse: '',
       buttonIndex,
-      inputText: '',
+      inputText: inputText || '',
       profileId: id,
       pubId,
       specVersion: '1.0.0',
-      state: '',
+      state: state || '',
       url: postUrl
     };
 
@@ -83,9 +87,15 @@ export const post: Handler = async (req, res) => {
       { headers: { 'User-Agent': GOOD_USER_AGENT } }
     );
 
-    const { document } = parseHTML(data);
-
     logger.info(`Open frame button clicked by ${id} on ${postUrl}`);
+
+    if (buttonAction === 'tx') {
+      return res
+        .status(200)
+        .json({ frame: { transaction: data }, success: true });
+    }
+
+    const { document } = parseHTML(data);
 
     return res
       .status(200)

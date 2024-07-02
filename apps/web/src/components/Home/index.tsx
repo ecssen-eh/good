@@ -4,7 +4,7 @@ import NewPost from '@components/Composer/Post/New';
 import ExploreFeed from '@components/Explore/Feed';
 import { HomeFeedType } from '@good/data/enums';
 import { PAGEVIEW } from '@good/data/tracking';
-import { GridItemEight, GridLayout } from '@good/ui';
+import { GridItemEight, GridItemFour, GridLayout } from '@good/ui';
 import { Leafwatch } from '@helpers/leafwatch';
 import { useEffect, useState } from 'react';
 import { useProfileStore } from 'src/store/persisted/useProfileStore';
@@ -13,6 +13,7 @@ import FeedType from './FeedType';
 import ForYou from './ForYou';
 import Hero from './Hero';
 import PaidActions from './PaidActions';
+import Sidebar from './Sidebar';
 import Timeline from './Timeline';
 
 const Home: NextPage = () => {
@@ -48,6 +49,9 @@ const Home: NextPage = () => {
             <ExploreFeed />
           )}
         </GridItemEight>
+        <GridItemFour>
+          <Sidebar />
+        </GridItemFour>
       </GridLayout>
     </>
   );

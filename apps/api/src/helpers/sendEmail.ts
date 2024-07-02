@@ -18,17 +18,15 @@ const sendEmail = async ({
   recipient: string;
   subject: string;
 }) => {
-  const params = {
-    Destination: { ToAddresses: [recipient] },
-    Message: {
-      Body: { Html: { Charset: 'UTF-8', Data: body } },
-      Subject: { Charset: 'UTF-8', Data: subject }
-    },
-    Source: 'no-reply@bcharity.net'
-  };
-
   try {
-    const command = new SendEmailCommand(params);
+    const command = new SendEmailCommand({
+      Destination: { ToAddresses: [recipient] },
+      Message: {
+        Body: { Html: { Charset: 'UTF-8', Data: body } },
+        Subject: { Charset: 'UTF-8', Data: subject }
+      },
+      Source: 'no-reply@he'
+    });
     const response = await sesClient.send(command);
 
     return logger.info(

@@ -11,6 +11,7 @@ import cn from '@good/ui/cn';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import isFeatureAvailable from '@helpers/isFeatureAvailable';
 import isFeatureEnabled from '@helpers/isFeatureEnabled';
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { useGlobalModalStateStore } from 'src/store/non-persisted/useGlobalModalStateStore';
 import { useProfileStore } from 'src/store/persisted/useProfileStore';
 
@@ -36,7 +37,7 @@ const SignedUser: FC = () => {
   const Avatar = () => (
     <Image
       alt={currentProfile?.id}
-      className="size-8 cursor-pointer rounded-full border dark:border-gray-700"
+      className="size-12 cursor-pointer rounded-full border dark:border-gray-700"
       onError={({ currentTarget }) => {
         currentTarget.src = getLennyURL(currentProfile?.id);
       }}
@@ -58,13 +59,19 @@ const SignedUser: FC = () => {
       >
         <Avatar />
       </button>
-      <Menu as="div" className="hidden md:block">
-        <MenuButton className="flex self-center rounded-full">
-          <Avatar />
-        </MenuButton>
+      <Menu as="div" className="relative hidden md:block">
+        <div className="bottom-0 flex items-center">
+          <MenuButton className="flex items-center rounded-full hover:bg-gray-200 hover:text-black dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white">
+            <Avatar />
+            <span className="nav-text text-sm">
+              @{currentProfile?.handle?.localName}
+            </span>
+            <EllipsisHorizontalIcon className="nav-text ml-1 size-6" />
+          </MenuButton>
+        </div>
         <MenuTransition>
           <MenuItems
-            className="absolute bottom-12 right-0 mb-8 mt-2 w-48 rounded-xl border bg-white py-1 shadow-sm focus:outline-none dark:border-gray-700 dark:bg-black"
+            className="absolute bottom-full mb-2 mt-2 w-48 rounded-xl border bg-white py-1 shadow-sm focus:outline-none dark:border-gray-700 dark:bg-black"
             static
           >
             <MenuItem

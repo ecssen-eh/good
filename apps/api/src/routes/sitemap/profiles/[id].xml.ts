@@ -1,55 +1,112 @@
 import type { Handler } from 'express';
 
+import { IS_MAINNET } from '@good/data/constants';
+import LensEndpoint from '@good/data/lens-endpoints';
 import logger from '@good/helpers/logger';
-import lensPg from 'src/db/lensPg';
+import axios from 'axios';
 import catchedError from 'src/helpers/catchedError';
-import { SITEMAP_BATCH_SIZE } from 'src/helpers/constants';
-import { noBody } from 'src/helpers/responses';
+import { GOOD_USER_AGENT, SITEMAP_BATCH_SIZE } from 'src/helpers/constants';
+import { invalidBody, noBody } from 'src/helpers/responses';
 import { buildUrlsetXml } from 'src/helpers/sitemap/buildSitemap';
+
+function getProfileIdsForBatch(batch: number): string[] {
+  const result: string[] = [];
+
+  const startId = (batch - 1) * SITEMAP_BATCH_SIZE + 1;
+  const endId = batch * SITEMAP_BATCH_SIZE;
+
+  for (let id = startId; id <= endId; id++) {
+    let hexId = id.toString(16);
+
+    // Lens API requires all hex strings to have even length
+    if (hexId.length % 2 !== 0) {
+      hexId = `0${hexId}`;
+    }
+
+    result.push(`0x${hexId}`);
+  }
+
+  return result;
+}
+
+interface ProfileLocalNameResponse {
+  handle: { localName: string } | null;
+}
+
+async function fetchProfileLocalNames(profileIds: string[]): Promise<string[]> {
+  const profilesQuery = {
+    query: `
+      query ProfileHandleLocalNames($request: ProfilesRequest!) {
+        profiles(request: $request) {
+          items {
+            handle {
+              localName
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      request: {
+        where: {
+          profileIds: profileIds
+        }
+      }
+    }
+  };
+
+  const { data } = await axios.post(
+    IS_MAINNET ? LensEndpoint.Mainnet : LensEndpoint.Testnet,
+    profilesQuery,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-agent': GOOD_USER_AGENT
+      }
+    }
+  );
+
+  const localNamesResponse: ProfileLocalNameResponse[] =
+    data.data.profiles.items;
+
+  const localNames = localNamesResponse
+    .filter((value) => value.handle !== null)
+    .map((value) => value.handle!.localName);
+
+  return localNames;
+}
 
 export const config = {
   api: { responseLimit: '8mb' }
 };
 
 export const get: Handler = async (req, res) => {
-  const batch = req.path.replace('/sitemap/profiles/', '');
+  const batch = req.params.id;
 
   if (!batch) {
     return noBody(res);
   }
 
+  const batchNumber = Number(batch);
+
+  if (isNaN(batchNumber) || batchNumber <= 0) {
+    return invalidBody(res);
+  }
+
   const user_agent = req.headers['user-agent'];
 
   try {
-    const offset = (Number(batch) - 1) * SITEMAP_BATCH_SIZE || 0;
+    const profileIds = getProfileIdsForBatch(batchNumber);
+    const localNames = await fetchProfileLocalNames(profileIds);
 
-    const response = await lensPg.query(
-      `
-        SELECT h.local_name, hl.block_timestamp
-        FROM namespace.handle h
-        JOIN namespace.handle_link hl ON h.handle_id = hl.handle_id
-        JOIN profile.record p ON hl.token_id = p.profile_id
-        WHERE p.is_burnt = false
-        ORDER BY p.block_timestamp
-        LIMIT $1
-        OFFSET $2;
-      `,
-      [SITEMAP_BATCH_SIZE, offset]
-    );
-
-    const entries = response.map((handle) => ({
-      lastmod: handle.block_timestamp
-        .toISOString()
-        .replace('T', ' ')
-        .replace('.000Z', '')
-        .split(' ')[0],
-      loc: `https://bcharity.net/u/${handle.local_name}`
+    const entries = localNames.map((localName) => ({
+      loc: `https://bcharity.net/u/${localName}`
     }));
 
     const xml = buildUrlsetXml(entries);
 
     logger.info(
-      `Lens: Fetched profiles sitemap for batch ${batch} having ${response.length} entries from user-agent: ${user_agent}`
+      `Lens: Fetched profiles sitemap for batch ${batch} having ${localNames.length} entries from user-agent: ${user_agent}`
     );
 
     return res.status(200).setHeader('Content-Type', 'text/xml').send(xml);

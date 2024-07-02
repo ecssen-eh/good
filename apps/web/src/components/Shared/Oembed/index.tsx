@@ -5,7 +5,6 @@ import type { FC } from 'react';
 import { GOOD_API_URL } from '@good/data/constants';
 import { ALLOWED_HTML_HOSTS } from '@good/data/og';
 import getFavicon from '@good/helpers/getFavicon';
-import isFeatureAvailable from '@helpers/isFeatureAvailable';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
@@ -84,7 +83,7 @@ const Oembed: FC<OembedProps> = ({ onLoad, publication, url }) => {
     return <Player og={og} />;
   }
 
-  if (og.frame && isFeatureAvailable('frames')) {
+  if (og.frame) {
     return <Frame frame={og.frame} publicationId={currentPublication?.id} />;
   }
 

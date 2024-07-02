@@ -20,13 +20,13 @@ type DatabaseQuery = string;
 
 class Database {
   private _connectionBase: IConnectionParameters = {
-    database: process.env.POSTGRES_DATABASE,
-    host: process.env.POSTGRES_HOST,
+    database: 'social_production_lens_v2_polygon',
+    host: 'lens.bcharity.net',
     idleTimeoutMillis: 30000,
     max: 1500,
-    password: process.env.POSTGRES_PASSWORD,
-    port: 5432,
-    user:process.env.POSTGRES_USER, 
+    password: process.env.LENS_DATABASE_PASSWORD,
+    port: 6969,
+    user: 'good'
   };
 
   private _readDb: DatabaseInstance;

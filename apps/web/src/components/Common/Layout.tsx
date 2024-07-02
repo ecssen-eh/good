@@ -21,10 +21,8 @@ import { useProfileStore } from 'src/store/persisted/useProfileStore';
 import { isAddress } from 'viem';
 import { useDisconnect } from 'wagmi';
 
-import Sidebar from '../Home/Sidebar';
 import GlobalModals from '../Shared/GlobalModals';
 import Loading from '../Shared/Loading';
-import Navbar from '../Shared/Navbar';
 
 interface LayoutProps {
   children: ReactNode;
@@ -99,14 +97,10 @@ const Layout: FC<LayoutProps> = ({ children }) => {
       />
       <GlobalModals />
       <GlobalAlerts />
-      <div className="flex min-h-screen pb-14 md:pb-0">
-        <Navbar />
+      <div className="flex min-h-screen flex-col pb-14 md:pb-0">
         <GlobalBanners />
         <BottomNavigation />
-        <div className="grow">{children}</div>
-        <div className="w-80 grow-0">
-          <Sidebar />
-        </div>
+        {children}
       </div>
     </>
   );

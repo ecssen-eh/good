@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Preference {
@@ -132,6 +133,38 @@ model DraftPublication {
   // Indexes
   @@index([profileId])
   @@index([createdAt, updatedAt])
+}
+
+model CauseDraftPublication {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId String
+  content   String
+  updatedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  // Indexes
+  @@index([profileId])
+  @@index([createdAt, updatedAt])
+}
+
+model Cause {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  publicationId  String
+  profileId      String
+  profileAddress String
+  donations      CauseDonation[]
+}
+
+model CauseDonation {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cause         Cause    @relation(fields: [causeId], references: [id])
+  causeId       String   @db.Uuid
+  fromProfileId String
+  fromAddress   String
+  tokenAddress  String
+  amount        BigInt
+  txHash        String
+  createdAt     DateTime @default(now())
 }
 
 model CachedProfileScore {

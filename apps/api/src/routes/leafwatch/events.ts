@@ -8,9 +8,11 @@ import catchedError from 'src/helpers/catchedError';
 import createClickhouseClient from 'src/helpers/createClickhouseClient';
 import findEventKeyDeep from 'src/helpers/leafwatch/findEventKeyDeep';
 import { invalidBody, noBody } from 'src/helpers/responses';
-import UAParser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 import urlcat from 'urlcat';
 import { any, object, string } from 'zod';
+
+let sseClients = require('../../helpers/leafwatch/sseClients');
 
 type ExtensionRequest = {
   fingerprint?: string;
@@ -39,7 +41,6 @@ export const post: Handler = async (req, res) => {
     return noBody(res);
   }
 
-  const accessToken = req.headers['x-access-token'] as string;
   const validation = validationSchema.safeParse(body);
 
   if (!validation.success) {
@@ -85,38 +86,43 @@ export const post: Handler = async (req, res) => {
     const utmCampaign = parsedUrl.searchParams.get('utm_campaign') || null;
     const utmTerm = parsedUrl.searchParams.get('utm_term') || null;
     const utmContent = parsedUrl.searchParams.get('utm_content') || null;
-    const payload = parseJwt(accessToken);
+    const identityToken = req.headers['x-identity-token'] as string;
+    const payload = parseJwt(identityToken);
+
+    const values = {
+      actor: payload.id || null,
+      browser: ua.browser.name || null,
+      browser_version: ua.browser.version || null,
+      city: ipData?.city || null,
+      country: ipData?.country || null,
+      fingerprint: fingerprint || null,
+      ip: ip || null,
+      name,
+      os: ua.os.name || null,
+      platform: platform || null,
+      properties: properties || null,
+      referrer: referrer || null,
+      region: ipData?.regionName || null,
+      url: url || null,
+      utm_campaign: utmCampaign || null,
+      utm_content: utmContent || null,
+      utm_medium: utmMedium || null,
+      utm_source: utmSource || null,
+      utm_term: utmTerm || null,
+      version: version || null,
+      wallet: payload.evmAddress || null
+    };
 
     const client = createClickhouseClient();
     const result = await client.insert({
       format: 'JSONEachRow',
       table: 'events',
-      values: [
-        {
-          actor: payload.id || null,
-          browser: ua.browser.name || null,
-          browser_version: ua.browser.version || null,
-          city: ipData?.city || null,
-          country: ipData?.country || null,
-          fingerprint: fingerprint || null,
-          ip: ip || null,
-          name,
-          os: ua.os.name || null,
-          platform: platform || null,
-          properties: properties || null,
-          referrer: referrer || null,
-          region: ipData?.regionName || null,
-          url: url || null,
-          utm_campaign: utmCampaign || null,
-          utm_content: utmContent || null,
-          utm_medium: utmMedium || null,
-          utm_source: utmSource || null,
-          utm_term: utmTerm || null,
-          version: version || null,
-          wallet: payload.evmAddress || null
-        }
-      ]
+      values: [values]
     });
+
+    for (const client of sseClients) {
+      client.write(`data: ${JSON.stringify(values)}\n\n`);
+    }
 
     logger.info('Ingested event to Leafwatch');
 

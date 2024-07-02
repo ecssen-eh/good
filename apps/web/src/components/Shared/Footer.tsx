@@ -4,10 +4,38 @@ import { APP_NAME } from '@good/data/constants';
 import { MISCELLANEOUS } from '@good/data/tracking';
 import cn from '@good/ui/cn';
 import { Leafwatch } from '@helpers/leafwatch';
-import showCrisp from '@helpers/showCrisp';
 import Link from 'next/link';
 import { useFeatureFlagsStore } from 'src/store/persisted/useFeatureFlagsStore';
 import urlcat from 'urlcat';
+
+const currentYear = new Date().getFullYear();
+
+const links = [
+  { href: '/terms', label: 'Terms' },
+  { href: '/privacy', label: 'Privacy' },
+  {
+    href: 'https://bcharity.net/discord',
+    label: 'Discord',
+    onClick: () => Leafwatch.track(MISCELLANEOUS.FOOTER.OPEN_DISCORD)
+  },
+  {
+    href: 'https://status.bcharity.net',
+    label: 'Status',
+    onClick: () => Leafwatch.track(MISCELLANEOUS.FOOTER.OPEN_STATUS)
+  },
+  {
+    href: 'https://feedback.bcharity.net',
+    label: 'Feedback',
+    onClick: () => Leafwatch.track(MISCELLANEOUS.FOOTER.OPEN_FEEDBACK)
+  },
+  { href: '/rules', label: 'Rules' },
+  {
+    href: 'https://github.com/heyxyz/hey',
+    label: 'GitHub',
+    onClick: () => Leafwatch.track(MISCELLANEOUS.FOOTER.OPEN_GITHUB)
+  },
+  { href: '/support', label: 'Support' }
+];
 
 const Footer: FC = () => {
   const { staffMode } = useFeatureFlagsStore();
@@ -16,7 +44,7 @@ const Footer: FC = () => {
     <footer className={cn(staffMode ? 'top-28' : 'top-20', 'sticky text-sm')}>
       <div className="mt-4 flex flex-wrap gap-x-[12px] gap-y-2 px-3 lg:px-0">
         <span className="ld-text-gray-500 font-bold">
-          &copy; {new Date().getFullYear()} {APP_NAME}
+          &copy; {currentYear} {APP_NAME}
         </span>
         <Link className="outline-offset-4" href="/terms">
           Terms
@@ -63,9 +91,9 @@ const Footer: FC = () => {
         >
           GitHub
         </Link>
-        <button className="outline-offset-4" onClick={showCrisp}>
+        <Link className="outline-offset-4" href="/support">
           Support
-        </button>
+        </Link>
       </div>
       <div className="mt-4">
         <Link

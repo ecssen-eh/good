@@ -6,7 +6,7 @@ import QueuedPublication from '@components/Publication/QueuedPublication';
 import SinglePublication from '@components/Publication/SinglePublication';
 import PublicationsShimmer from '@components/Shared/Shimmer/PublicationsShimmer';
 import { GOOD_CURATED_ID } from '@good/data/constants';
-import { FeedEventItemType, useFeedQuery } from '@good/lens';
+import { useFeedQuery } from '@good/lens';
 import { OptmisticPublicationType } from '@good/types/enums';
 import { Card, EmptyState, ErrorMessage } from '@good/ui';
 import { UserGroupIcon } from '@heroicons/react/24/outline';
@@ -28,17 +28,7 @@ const Timeline: FC = () => {
 
   // Variables
   const request: FeedRequest = {
-    where: {
-      feedEventItemTypes: [
-        FeedEventItemType.Acted,
-        FeedEventItemType.Collect,
-        FeedEventItemType.Mirror,
-        FeedEventItemType.Post,
-        FeedEventItemType.Quote,
-        FeedEventItemType.Reaction
-      ],
-      for: fallbackToCuratedFeed ? GOOD_CURATED_ID : currentProfile?.id
-    }
+    where: { for: fallbackToCuratedFeed ? GOOD_CURATED_ID : currentProfile?.id }
   };
 
   const { data, error, fetchMore, loading } = useFeedQuery({

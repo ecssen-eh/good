@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { FC, ReactNode } from 'react';
 
 import { LIVEPEER_KEY } from '@good/data/constants';
 import { apolloClient, ApolloProvider } from '@good/lens/apollo';
@@ -14,7 +14,6 @@ import { ThemeProvider } from 'next-themes';
 
 import ErrorBoundary from '../ErrorBoundary';
 import Layout from '../Layout';
-import CrispProvider from './CrispProvider';
 import LeafwatchProvider from './LeafwatchProvider';
 import LensAuthProvider from './LensAuthProvider';
 import LensSubscriptionsProvider from './LensSubscriptionsProvider';
@@ -32,10 +31,13 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } }
 });
 
-const Providers = ({ children }: { children: ReactNode }) => {
+interface ProvidersProps {
+  children: ReactNode;
+}
+
+const Providers: FC<ProvidersProps> = ({ children }) => {
   return (
     <ErrorBoundary>
-      <CrispProvider />
       <ServiceWorkerProvider />
       <LeafwatchProvider />
       <Web3Provider>

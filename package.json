@@ -16,7 +16,6 @@
     "prettier:fix": "turbo run prettier:fix --parallel",
     "start": "turbo run start --parallel",
     "test:dev": "turbo run test:dev",
-    "test:e2e": "start-server-and-test start '4784' test:dev",
     "typecheck": "turbo run typecheck --parallel",
     "typecheck:affected": "turbo run typecheck --parallel --filter=[origin/main]"
   },
@@ -24,17 +23,17 @@
     "root": true
   },
   "dependencies": {
-    "@good/abis": "workspace:^"
+    "@good/abis": "workspace:^",
+    "styled-components": "^6.1.11"
   },
   "devDependencies": {
-    "eslint-plugin-perfectionist": "^2.10.0",
+    "@types/styled-components": "^5.1.34",
     "husky": "^9.0.11",
-    "prettier": "^3.3.1",
-    "prettier-plugin-tailwindcss": "^0.6.1",
-    "start-server-and-test": "^2.0.4",
-    "turbo": "^2.0.1"
+    "prettier": "^3.3.2",
+    "prettier-plugin-tailwindcss": "^0.6.5",
+    "turbo": "^2.0.5"
   },
-  "packageManager": "pnpm@8.15.8+sha256.691fe176eea9a8a80df20e4976f3dfb44a04841ceb885638fe2a26174f81e65e",
+  "packageManager": "pnpm@9.1.4",
   "engines": {
     "node": ">=16.x <=20.x"
   }

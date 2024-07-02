@@ -1,0 +1,28 @@
+name: Format
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js, pnpm and dependencies
+        uses: ./.github/actions/setup-pnpm
+
+      - name: Format files
+        run: pnpm prettier:fix
+      - name: Lint files
+        run: pnpm lint:fix
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}

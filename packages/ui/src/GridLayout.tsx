@@ -27,6 +27,19 @@ export const GridLayout: FC<GridProps> = ({
   );
 };
 
+export const GridItemTwo: FC<GridProps> = ({ children, className = '' }) => {
+  return (
+    <div
+      className={cn(
+        'col-span-11 text-left sm:col-span-2 md:col-span-2 lg:col-span-2',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const GridItemFour: FC<GridProps> = ({ children, className = '' }) => {
   return (
     <div className={cn('col-span-11 md:col-span-11 lg:col-span-4', className)}>
@@ -39,6 +52,19 @@ export const GridItemEight: FC<GridProps> = ({ children, className = '' }) => {
   return (
     <div
       className={cn('col-span-11 mb-5 md:col-span-11 lg:col-span-7', className)}
+    >
+      {children}
+    </div>
+  );
+};
+
+export const GridItemTen: FC<GridProps> = ({ children, className = '' }) => {
+  return (
+    <div
+      className={cn(
+        'col-span-11 mb-5 sm:col-span-11 md:col-span-9 lg:col-span-9',
+        className
+      )}
     >
       {children}
     </div>
